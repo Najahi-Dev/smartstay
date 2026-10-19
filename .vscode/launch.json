@@ -1,0 +1,13 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "SmartStay",
+            "request": "launch",
+            "mainClass": "smartstay.SmartStayApp",
+            "console": "integratedTerminal",
+            "vmArgs": "--enable-native-access=ALL-UNNAMED"
+        }
+    ]
+}
