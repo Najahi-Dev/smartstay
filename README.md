@@ -54,7 +54,8 @@ java --enable-native-access=ALL-UNNAMED -cp "out;lib\jline-3.26.3.jar" smartstay
 
 **Windows (Command Prompt):**
 ```bat
-dir /s /b src\*.java > sources.txt
+(for /r src %f in (*.java) do @echo "%f") > sources.txt
+powershell -Command "(Get-Content sources.txt) -replace '\\','/' | Set-Content sources.txt"
 javac -cp lib\jline-3.26.3.jar -d out @sources.txt
 java --enable-native-access=ALL-UNNAMED -cp "out;lib\jline-3.26.3.jar" smartstay.SmartStayApp
 ```

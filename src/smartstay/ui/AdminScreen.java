@@ -1,5 +1,7 @@
 package smartstay.ui;
 
+import smartstay.exception.GoBackException;
+
 import java.util.List;
 
 /**
@@ -54,12 +56,22 @@ public class AdminScreen {
         }
     }
 
-    /** Gives the admin 3 tries, then goes back to the main menu. */
+    /** Gives the admin 3 tries, then goes back to the main menu. # goes back at once. */
     private boolean login() {
         System.out.println();
         Display.printBox("Admin Login");
+        io.printInfo("Type " + ConsoleIO.GO_BACK_KEY + " to go back.");
+        try {
+            return tryLogin();
+        } catch (GoBackException e) {
+            io.printInfo("Login cancelled.");
+            return false;
+        }
+    }
+
+    private boolean tryLogin() {
         for (int attempt = 1; attempt <= MAX_LOGIN_ATTEMPTS; attempt++) {
-            String username = io.readLine("  Username: ");
+            String username = io.readText("  Username: ");
             String password = io.readPassword("  Password: ");
             if (ADMIN_USERNAME.equals(username) && ADMIN_PASSWORD.equals(password)) {
                 io.printSuccess("Welcome, admin.");

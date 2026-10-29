@@ -150,7 +150,11 @@ public class ConsoleIO {
         if (password == null) {
             return readText(prompt); // input ended: readText handles the exit message
         }
-        return password.trim();
+        password = password.trim();
+        if (GO_BACK_KEY.equals(password)) {
+            throw new GoBackException();
+        }
+        return password;
     }
 
     /** Y/N question. Anything other than y/yes/n/no asks again. */
