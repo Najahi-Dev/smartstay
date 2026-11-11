@@ -43,3 +43,6 @@
 | B29 | Bed type does not change the price. | Not in the price table. |
 | B30 | The admin gets 3 login attempts, then the program returns to the main menu. | A sensible limit. |
 | B31 | Typing `#` in any form goes back to the menu without saving. | The brief asks for a Back option everywhere, and forms are not menus. |
+
+
+claude --resume 695fd1a6-eae5-428a-a623-bf25c1d74291

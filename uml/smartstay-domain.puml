@@ -1,0 +1,421 @@
+@startuml smartstay-domain
+' SmartStay - Class diagram 1 of 2: domain model, business logic, utilities and exceptions.
+' Visibility: + public, - private, # protected, ~ package.
+' {static} = underlined, {abstract} = italic, {readOnly} = Java final field.
+
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+skinparam shadowing false
+skinparam nodesep 60
+skinparam ranksep 70
+hide empty members
+
+title SmartStay Hotel Booking System - Domain and Business Logic
+
+' =====================================================================
+package "smartstay.model" {
+
+  enum RoomType <<enumeration>> {
+    STANDARD
+    DELUXE
+    SUITE
+    FAMILY_SUITE
+    --
+    - label : String {readOnly}
+    --
+    + getLabel() : String
+    + toString() : String
+  }
+
+  enum BedType <<enumeration>> {
+    SINGLE
+    DOUBLE
+    QUEEN
+    KING
+    --
+    - label : String {readOnly}
+    --
+    + getLabel() : String
+    + toString() : String
+  }
+
+  enum RoomStatus <<enumeration>> {
+    AVAILABLE
+    RESERVED
+    UNDER_MAINTENANCE
+    --
+    - label : String {readOnly}
+    --
+    + getLabel() : String
+    + toString() : String
+  }
+
+  enum BookingStatus <<enumeration>> {
+    CONFIRMED
+    CANCELLED
+    COMPLETED
+    --
+    - label : String {readOnly}
+    --
+    + getLabel() : String
+    + toString() : String
+  }
+
+  abstract class Room {
+    - roomId : String {readOnly}
+    - bedType : BedType
+    - status : RoomStatus
+    --
+    # Room(roomId : String, bedType : BedType)
+    + {abstract} getRoomType() : RoomType
+    + {abstract} getDailyRate() : BigDecimal
+    + {abstract} includesBreakfast() : boolean
+    + {abstract} getExtraGuestCharge() : BigDecimal
+    + {abstract} getTaxRate() : BigDecimal
+    + {abstract} getCapacity() : int
+    + getRoomId() : String
+    + getBedType() : BedType
+    + setBedType(bedType : BedType) : void
+    + getStatus() : RoomStatus
+    + setStatus(status : RoomStatus) : void
+    + isAvailable() : boolean
+  }
+
+  class StandardRoom {
+    - {static} DAILY_RATE : BigDecimal = 6000 {readOnly}
+    - {static} EXTRA_GUEST_CHARGE : BigDecimal = 1000 {readOnly}
+    - {static} TAX_RATE : BigDecimal = 0.10 {readOnly}
+    - {static} CAPACITY : int = 2 {readOnly}
+    --
+    + StandardRoom(roomId : String, bedType : BedType)
+    + getRoomType() : RoomType
+    + getDailyRate() : BigDecimal
+    + includesBreakfast() : boolean
+    + getExtraGuestCharge() : BigDecimal
+    + getTaxRate() : BigDecimal
+    + getCapacity() : int
+  }
+
+  class DeluxeRoom {
+    - {static} DAILY_RATE : BigDecimal = 9000 {readOnly}
+    - {static} EXTRA_GUEST_CHARGE : BigDecimal = 1500 {readOnly}
+    - {static} TAX_RATE : BigDecimal = 0.12 {readOnly}
+    - {static} CAPACITY : int = 2 {readOnly}
+    --
+    + DeluxeRoom(roomId : String, bedType : BedType)
+    + getRoomType() : RoomType
+    + getDailyRate() : BigDecimal
+    + includesBreakfast() : boolean
+    + getExtraGuestCharge() : BigDecimal
+    + getTaxRate() : BigDecimal
+    + getCapacity() : int
+  }
+
+  class SuiteRoom {
+    - {static} DAILY_RATE : BigDecimal = 14000 {readOnly}
+    - {static} EXTRA_GUEST_CHARGE : BigDecimal = 2000 {readOnly}
+    - {static} TAX_RATE : BigDecimal = 0.15 {readOnly}
+    - {static} CAPACITY : int = 3 {readOnly}
+    --
+    + SuiteRoom(roomId : String, bedType : BedType)
+    + getRoomType() : RoomType
+    + getDailyRate() : BigDecimal
+    + includesBreakfast() : boolean
+    + getExtraGuestCharge() : BigDecimal
+    + getTaxRate() : BigDecimal
+    + getCapacity() : int
+  }
+
+  class FamilySuiteRoom {
+    - {static} DAILY_RATE : BigDecimal = 18000 {readOnly}
+    - {static} EXTRA_GUEST_CHARGE : BigDecimal = 2500 {readOnly}
+    - {static} TAX_RATE : BigDecimal = 0.15 {readOnly}
+    - {static} CAPACITY : int = 4 {readOnly}
+    --
+    + FamilySuiteRoom(roomId : String, bedType : BedType)
+    + getRoomType() : RoomType
+    + getDailyRate() : BigDecimal
+    + includesBreakfast() : boolean
+    + getExtraGuestCharge() : BigDecimal
+    + getTaxRate() : BigDecimal
+    + getCapacity() : int
+  }
+
+  class RoomFactory <<Factory>> <<final>> {
+    - RoomFactory()
+    + {static} createRoom(type : RoomType, roomId : String, bedType : BedType) : Room
+  }
+
+  class Guest {
+    - nic : String {readOnly}
+    - fullName : String
+    - phone : String
+    - email : String
+    --
+    + Guest(nic : String, fullName : String, phone : String, email : String)
+    + getNic() : String
+    + getFullName() : String
+    + setFullName(fullName : String) : void
+    + getPhone() : String
+    + setPhone(phone : String) : void
+    + getEmail() : String
+    + setEmail(email : String) : void
+  }
+
+  class Booking {
+    + {static} ADVANCE_AMOUNT : BigDecimal = 10000.00 {readOnly}
+    - bookingId : String {readOnly}
+    - guest : Guest {readOnly}
+    - room : Room {readOnly}
+    - numberOfGuests : int {readOnly}
+    - checkIn : LocalDate {readOnly}
+    - checkOut : LocalDate {readOnly}
+    - status : BookingStatus
+    --
+    + Booking(bookingId : String, guest : Guest, room : Room, numberOfGuests : int, checkIn : LocalDate, checkOut : LocalDate)
+    + getNights() : long
+    + overlaps(newCheckIn : LocalDate, newCheckOut : LocalDate) : boolean
+    + isActive() : boolean
+    + cancel() : void
+    + complete() : void
+    + getBookingId() : String
+    + getGuest() : Guest
+    + getRoom() : Room
+    + getNumberOfGuests() : int
+    + getCheckIn() : LocalDate
+    + getCheckOut() : LocalDate
+    + getStatus() : BookingStatus
+  }
+
+  class Invoice {
+    - invoiceId : String {readOnly}
+    - booking : Booking {readOnly}
+    - issuedOn : LocalDate {readOnly}
+    - extraGuests : int {readOnly}
+    - baseCharge : BigDecimal {readOnly}
+    - extraGuestCharge : BigDecimal {readOnly}
+    - discount : BigDecimal {readOnly}
+    - tax : BigDecimal {readOnly}
+    - totalAmount : BigDecimal {readOnly}
+    - advanceDeducted : BigDecimal {readOnly}
+    - finalPayable : BigDecimal {readOnly}
+    --
+    + Invoice(invoiceId : String, booking : Booking, issuedOn : LocalDate, extraGuests : int, baseCharge : BigDecimal, extraGuestCharge : BigDecimal, discount : BigDecimal, tax : BigDecimal, totalAmount : BigDecimal, advanceDeducted : BigDecimal, finalPayable : BigDecimal)
+    + getInvoiceId() : String
+    + getBooking() : Booking
+    + getIssuedOn() : LocalDate
+    + getExtraGuests() : int
+    + getBaseCharge() : BigDecimal
+    + getExtraGuestCharge() : BigDecimal
+    + getDiscount() : BigDecimal
+    + getTax() : BigDecimal
+    + getTotalAmount() : BigDecimal
+    + getAdvanceDeducted() : BigDecimal
+    + getFinalPayable() : BigDecimal
+  }
+}
+
+' =====================================================================
+package "smartstay.service" {
+
+  class BookingManager {
+    + {static} MAX_EXTRA_GUESTS : int = 2 {readOnly}
+    + {static} CHECK_IN_TIME : LocalTime = 14:00 {readOnly}
+    - {static} NO_CHANGE_HOURS : long = 24 {readOnly}
+    - {static} BY_CHECK_IN : Comparator<Booking> {readOnly}
+    - bookings : Map<String, Booking> {readOnly}
+    - lastBookingNumber : int
+    --
+    + createBooking(guest : Guest, room : Room, numberOfGuests : int, checkIn : LocalDate, checkOut : LocalDate) : Booking
+    ~ addSampleBooking(guest : Guest, room : Room, numberOfGuests : int, checkIn : LocalDate, checkOut : LocalDate) : Booking
+    + cancelBooking(bookingId : String) : Booking
+    + checkCanCancel(booking : Booking) : void
+    + completeBooking(booking : Booking) : void
+    + findBooking(bookingId : String) : Booking
+    + searchByGuestName(text : String) : List<Booking>
+    + getAllBookingsSorted() : List<Booking>
+    + getBookingsForGuest(nic : String) : List<Booking>
+    + isRoomFreeForDates(room : Room, checkIn : LocalDate, checkOut : LocalDate) : boolean
+    + hasActiveBookingForRoom(roomId : String) : boolean
+    + hasActiveBookingForGuest(nic : String) : boolean
+    - checkOutsideNoChangeWindow(booking : Booking, now : LocalDateTime) : void
+    - storeBooking(guest : Guest, room : Room, numberOfGuests : int, checkIn : LocalDate, checkOut : LocalDate) : Booking
+    - nextBookingId() : String
+    - checkRoomCanBeBooked(room : Room) : void
+    - checkGuestCount(room : Room, numberOfGuests : int) : void
+    - releaseRoomIfFree(room : Room) : void
+  }
+
+  class RoomManager {
+    - rooms : Map<String, Room> {readOnly}
+    - bookingManager : BookingManager {readOnly}
+    --
+    + RoomManager(bookingManager : BookingManager)
+    + addRoom(roomId : String, type : RoomType, bedType : BedType) : Room
+    + removeRoom(roomId : String) : void
+    + updateBedType(roomId : String, bedType : BedType) : void
+    + changeStatus(roomId : String, newStatus : RoomStatus) : void
+    + roomExists(roomId : String) : boolean
+    + findRoom(roomId : String) : Room
+    + getAllRooms() : List<Room>
+    + findAvailableRooms(type : RoomType, checkIn : LocalDate, checkOut : LocalDate) : List<Room>
+  }
+
+  class GuestManager {
+    - guests : Map<String, Guest> {readOnly}
+    - bookingManager : BookingManager {readOnly}
+    --
+    + GuestManager(bookingManager : BookingManager)
+    + registerGuest(nic : String, fullName : String, phone : String, email : String) : Guest
+    + updateGuest(nic : String, fullName : String, phone : String, email : String) : void
+    + removeGuest(nic : String) : void
+    + isRegistered(nic : String) : boolean
+    + findGuest(nic : String) : Guest
+    + getAllGuests() : List<Guest>
+  }
+
+  class BillingManager {
+    + {static} DISCOUNT_MIN_NIGHTS : int = 5 {readOnly}
+    + {static} DISCOUNT_RATE : BigDecimal = 0.12 {readOnly}
+    + {static} ESTIMATE_ID : String = "ESTIMATE" {readOnly}
+    - invoices : List<Invoice> {readOnly}
+    - bookingManager : BookingManager {readOnly}
+    - lastInvoiceNumber : int
+    --
+    + BillingManager(bookingManager : BookingManager)
+    + createInvoice(bookingId : String) : Invoice
+    + estimateInvoice(booking : Booking) : Invoice
+    + findInvoiceForBooking(bookingId : String) : Optional<Invoice>
+    + getInvoiceHistory() : List<Invoice>
+    - calculateInvoice(booking : Booking, invoiceId : String) : Invoice
+    - money(value : BigDecimal) : BigDecimal
+    - nextInvoiceId() : String
+  }
+
+  class SampleDataLoader <<final>> {
+    - SampleDataLoader()
+    + {static} load(roomManager : RoomManager, guestManager : GuestManager, bookingManager : BookingManager) : void
+    - {static} loadRooms(rooms : RoomManager) : void
+    - {static} loadGuests(guests : GuestManager) : void
+    - {static} loadBookings(rooms : RoomManager, guests : GuestManager, bookings : BookingManager) : void
+  }
+}
+
+' =====================================================================
+package "smartstay.util" {
+
+  class Validator <<final>> {
+    + {static} MIN_DAYS_IN_ADVANCE : int = 2 {readOnly}
+    - {static} NIC_PATTERN : Pattern {readOnly}
+    - {static} NAME_PATTERN : Pattern {readOnly}
+    - {static} PHONE_PATTERN : Pattern {readOnly}
+    - {static} EMAIL_PATTERN : Pattern {readOnly}
+    - {static} ROOM_ID_PATTERN : Pattern {readOnly}
+    - {static} DATE_FORMAT : DateTimeFormatter {readOnly}
+    --
+    - Validator()
+    + {static} validateNic(raw : String) : String
+    + {static} validateName(raw : String) : String
+    + {static} validatePhone(raw : String) : String
+    + {static} validateEmail(raw : String) : String
+    + {static} validateRoomId(raw : String) : String
+    + {static} parseDate(raw : String) : LocalDate
+    + {static} parseNumber(raw : String, min : int, max : int) : int
+    + {static} checkStayDates(checkIn : LocalDate, checkOut : LocalDate, today : LocalDate) : void
+    + {static} checkCheckInDate(checkIn : LocalDate, today : LocalDate) : void
+    - {static} requireNotEmpty(raw : String, fieldName : String) : String
+  }
+
+  class MoneyFormatter <<final>> {
+    - {static} FORMAT : DecimalFormat {readOnly}
+    --
+    - MoneyFormatter()
+    + {static} format(amount : BigDecimal) : String
+    + {static} formatNumber(amount : BigDecimal) : String
+  }
+}
+
+' =====================================================================
+package "smartstay.exception" {
+
+  class HotelException {
+    + HotelException(message : String)
+  }
+  class ValidationException {
+    + ValidationException(message : String)
+  }
+  class BusinessRuleException {
+    + BusinessRuleException(message : String)
+  }
+  class NotFoundException {
+    + NotFoundException(message : String)
+  }
+  class GoBackException {
+    + GoBackException()
+  }
+}
+
+package "java.lang" {
+  class Exception
+  class RuntimeException
+}
+
+' =====================================================================
+' Generalisation (inheritance)
+Room <|-- StandardRoom
+Room <|-- DeluxeRoom
+Room <|-- SuiteRoom
+Room <|-- FamilySuiteRoom
+
+Exception <|-- HotelException
+HotelException <|-- ValidationException
+HotelException <|-- BusinessRuleException
+HotelException <|-- NotFoundException
+RuntimeException <|-- GoBackException
+
+' Association (with multiplicity and role name)
+Booking "0..*" --> "1" Guest : -guest
+Booking "0..*" --> "1" Room : -room
+Booking "0..*" --> "1" BookingStatus : -status
+Invoice "0..1" --> "1" Booking : -booking
+Room "0..*" --> "1" BedType : -bedType
+Room "0..*" --> "1" RoomStatus : -status
+
+RoomManager "1" --> "1" BookingManager : -bookingManager
+GuestManager "1" --> "1" BookingManager : -bookingManager
+BillingManager "1" --> "1" BookingManager : -bookingManager
+
+' Aggregation (manager holds the objects in a collection)
+RoomManager "1" o-- "0..*" Room : -rooms
+GuestManager "1" o-- "0..*" Guest : -guests
+BookingManager "1" o-- "0..*" Booking : -bookings
+BillingManager "1" o-- "0..*" Invoice : -invoices
+
+' Dependency (uses / creates)
+Room ..> RoomType : <<use>>
+RoomFactory ..> StandardRoom : <<create>>
+RoomFactory ..> DeluxeRoom : <<create>>
+RoomFactory ..> SuiteRoom : <<create>>
+RoomFactory ..> FamilySuiteRoom : <<create>>
+RoomManager ..> RoomFactory : <<use>>
+BillingManager ..> Invoice : <<create>>
+BookingManager ..> Booking : <<create>>
+GuestManager ..> Guest : <<create>>
+BookingManager ..> Validator : <<use>>
+BookingManager ..> RoomStatus : <<use>>
+SampleDataLoader ..> RoomManager : <<use>>
+SampleDataLoader ..> GuestManager : <<use>>
+SampleDataLoader ..> BookingManager : <<use>>
+
+BookingManager ..> ValidationException : <<throws>>
+BookingManager ..> BusinessRuleException : <<throws>>
+BookingManager ..> NotFoundException : <<throws>>
+RoomManager ..> BusinessRuleException : <<throws>>
+RoomManager ..> NotFoundException : <<throws>>
+GuestManager ..> BusinessRuleException : <<throws>>
+GuestManager ..> NotFoundException : <<throws>>
+BillingManager ..> BusinessRuleException : <<throws>>
+BillingManager ..> NotFoundException : <<throws>>
+Validator ..> ValidationException : <<throws>>
+
+@enduml

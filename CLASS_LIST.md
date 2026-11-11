@@ -257,7 +257,7 @@ Nested «interface»s inside ConsoleIO (both `@FunctionalInterface`):
 | Class | Fields | Public methods |
 |-------|--------|----------------|
 | MainScreen | io, adminScreen, guestScreen | `+ show()` |
-| AdminScreen | ADMIN_USERNAME, ADMIN_PASSWORD, MAX_LOGIN_ATTEMPTS {static}, io, roomScreen, guestScreen, bookingScreen, invoiceScreen | `+ show()`, `- login() : boolean` |
+| AdminScreen | ADMIN_USERNAME, ADMIN_PASSWORD, MAX_LOGIN_ATTEMPTS {static}, io, roomScreen, guestScreen, bookingScreen, invoiceScreen | `+ show()`, `- login() : boolean`, `- tryLogin() : boolean` |
 | AdminRoomScreen | io, forms, roomManager | `+ show()` (+ private addRoom, removeRoom, updateRoom, viewRooms, changeStatus, askForRoom, checkNewRoomId) |
 | AdminGuestScreen | io, forms, guestManager | `+ show()` (+ private removeGuest, updateGuest, viewGuests) |
 | AdminBookingScreen | io, forms, bookingManager | `+ show()` (+ private createBooking, viewBookings) |

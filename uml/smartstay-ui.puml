@@ -1,0 +1,393 @@
+@startuml smartstay-ui
+' SmartStay - Class diagram 2 of 2: user interface layer and program entry point.
+' Classes from diagram 1 (managers, model, util, exceptions) are shown without members.
+' Visibility: + public, - private, # protected, ~ package.
+' {static} = underlined, {readOnly} = Java final field.
+
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+skinparam shadowing false
+skinparam nodesep 60
+skinparam ranksep 70
+hide empty members
+
+title SmartStay Hotel Booking System - User Interface Layer
+
+' =====================================================================
+package "smartstay" {
+  class SmartStayApp {
+    + {static} main(args : String[]) : void
+  }
+}
+
+' =====================================================================
+package "smartstay.ui" {
+
+  class MainScreen {
+    - io : ConsoleIO {readOnly}
+    - adminScreen : AdminScreen {readOnly}
+    - guestScreen : GuestScreen {readOnly}
+    --
+    + MainScreen(io : ConsoleIO, adminScreen : AdminScreen, guestScreen : GuestScreen)
+    + show() : void
+    - printWelcome() : void
+  }
+
+  class AdminScreen {
+    - {static} ADMIN_USERNAME : String = "admin" {readOnly}
+    - {static} ADMIN_PASSWORD : String = "admin123" {readOnly}
+    - {static} MAX_LOGIN_ATTEMPTS : int = 3 {readOnly}
+    - io : ConsoleIO {readOnly}
+    - roomScreen : AdminRoomScreen {readOnly}
+    - guestScreen : AdminGuestScreen {readOnly}
+    - bookingScreen : AdminBookingScreen {readOnly}
+    - invoiceScreen : AdminInvoiceScreen {readOnly}
+    --
+    + AdminScreen(io : ConsoleIO, roomScreen : AdminRoomScreen, guestScreen : AdminGuestScreen, bookingScreen : AdminBookingScreen, invoiceScreen : AdminInvoiceScreen)
+    + show() : void
+    - login() : boolean
+    - tryLogin() : boolean
+  }
+
+  class AdminRoomScreen {
+    - io : ConsoleIO {readOnly}
+    - forms : SharedForms {readOnly}
+    - roomManager : RoomManager {readOnly}
+    --
+    + AdminRoomScreen(io : ConsoleIO, forms : SharedForms, roomManager : RoomManager)
+    + show() : void
+    - addRoom() : void
+    - removeRoom() : void
+    - updateRoom() : void
+    - viewRooms() : void
+    - changeStatus() : void
+    - askForRoom() : Room
+    - checkNewRoomId(raw : String) : String
+  }
+
+  class AdminGuestScreen {
+    - io : ConsoleIO {readOnly}
+    - forms : SharedForms {readOnly}
+    - guestManager : GuestManager {readOnly}
+    --
+    + AdminGuestScreen(io : ConsoleIO, forms : SharedForms, guestManager : GuestManager)
+    + show() : void
+    - removeGuest() : void
+    - updateGuest() : void
+    - viewGuests() : void
+  }
+
+  class AdminBookingScreen {
+    - io : ConsoleIO {readOnly}
+    - forms : SharedForms {readOnly}
+    - bookingManager : BookingManager {readOnly}
+    --
+    + AdminBookingScreen(io : ConsoleIO, forms : SharedForms, bookingManager : BookingManager)
+    + show() : void
+    - createBooking() : void
+    - viewBookings() : void
+  }
+
+  class AdminInvoiceScreen {
+    - io : ConsoleIO {readOnly}
+    - bookingManager : BookingManager {readOnly}
+    - billingManager : BillingManager {readOnly}
+    --
+    + AdminInvoiceScreen(io : ConsoleIO, bookingManager : BookingManager, billingManager : BillingManager)
+    + show() : void
+    - createInvoice() : void
+    - viewHistory() : void
+  }
+
+  class GuestScreen {
+    - io : ConsoleIO {readOnly}
+    - forms : SharedForms {readOnly}
+    - guestManager : GuestManager {readOnly}
+    - bookingManager : BookingManager {readOnly}
+    - billingManager : BillingManager {readOnly}
+    - currentGuest : Guest
+    --
+    + GuestScreen(io : ConsoleIO, forms : SharedForms, guestManager : GuestManager, bookingManager : BookingManager, billingManager : BillingManager)
+    + show() : void
+    - login() : void
+    - showGuestMenu() : void
+    - searchReservation() : void
+    - viewByCheckInDate() : void
+    - cancelReservation() : void
+    - printInvoice() : void
+    - chooseOwnBooking(title : String, activeOnly : boolean) : Booking
+    - checkSearchText(raw : String) : String
+  }
+
+  class SharedForms {
+    - io : ConsoleIO {readOnly}
+    - roomManager : RoomManager {readOnly}
+    - guestManager : GuestManager {readOnly}
+    - bookingManager : BookingManager {readOnly}
+    --
+    + SharedForms(io : ConsoleIO, roomManager : RoomManager, guestManager : GuestManager, bookingManager : BookingManager)
+    + registerGuestForm() : Guest
+    + findGuestForm() : Guest
+    + searchRoomsForm() : void
+    + chooseRoomType(title : String) : RoomType
+    + chooseBedType(title : String) : BedType
+    + bookingForm(guest : Guest) : void
+    + <T> chooseFromList(title : String, values : List<T>) : T
+    - readCheckIn() : LocalDate
+    - readCheckOut(checkIn : LocalDate) : LocalDate
+    - chooseRoom(rooms : List<Room>) : Room
+    - readGuestCount(room : Room) : int
+    - printBookingSummary(guest : Guest, room : Room, numberOfGuests : int, checkIn : LocalDate, checkOut : LocalDate) : void
+    - checkNewNic(raw : String) : String
+  }
+
+  class Menu {
+    - io : ConsoleIO {readOnly}
+    - title : String {readOnly}
+    - options : List<String> {readOnly}
+    --
+    + Menu(io : ConsoleIO, title : String, options : List<String>)
+    + show() : int
+    + isLast(choice : int) : boolean
+    - showNumbered() : int
+  }
+
+  class ConsoleIO {
+    + {static} GO_BACK_KEY : String = "#" {readOnly}
+    - arrowReader : ArrowKeyReader {readOnly}
+    - plainReader : BufferedReader {readOnly}
+    --
+    + ConsoleIO(forceNumbered : boolean)
+    + isArrowMode() : boolean
+    ~ getArrowReader() : ArrowKeyReader
+    + readLine(prompt : String) : String
+    + readText(prompt : String) : String
+    + readValid(prompt : String, check : TextCheck) : String
+    + readValidOrKeep(prompt : String, currentValue : String, check : TextCheck) : String
+    + readNumber(prompt : String, min : int, max : int) : int
+    + readDate(prompt : String) : LocalDate
+    + readPassword(prompt : String) : String
+    + confirm(question : String) : boolean
+    + pause() : void
+    + runAction(action : ScreenAction) : void
+    + printError(message : String) : void
+    + printSuccess(message : String) : void
+    + printInfo(message : String) : void
+    - {static} createArrowReader() : ArrowKeyReader
+    - readPlainLine() : String
+  }
+
+  interface "ConsoleIO.TextCheck" as TextCheck <<FunctionalInterface>> {
+    + check(raw : String) : String
+  }
+
+  interface "ConsoleIO.ScreenAction" as ScreenAction <<FunctionalInterface>> {
+    + run() : void
+  }
+
+  class ArrowKeyReader {
+    - {static} KEY_UP : String = "up" {readOnly}
+    - {static} KEY_DOWN : String = "down" {readOnly}
+    - {static} KEY_ENTER : String = "enter" {readOnly}
+    - {static} ESC : String {readOnly}
+    - {static} HIGHLIGHT_ON : String {readOnly}
+    - {static} HIGHLIGHT_OFF : String {readOnly}
+    - {static} CLEAR_LINE : String {readOnly}
+    - terminal : Terminal {readOnly}
+    - lineReader : LineReader {readOnly}
+    - keyReader : BindingReader {readOnly}
+    - menuKeys : KeyMap<String> {readOnly}
+    --
+    - ArrowKeyReader(terminal : Terminal)
+    + {static} tryCreate() : ArrowKeyReader
+    + readLine(prompt : String) : String
+    + readHiddenLine(prompt : String) : String
+    + select(options : List<String>, hint : String) : int
+    - readLine(prompt : String, mask : Character) : String
+    - drawOptions(out : PrintWriter, options : List<String>, selected : int, hint : String) : void
+    - {static} buildMenuKeys(terminal : Terminal) : KeyMap<String>
+    - {static} bindIfKnown(keys : KeyMap<String>, action : String, keyCode : String) : void
+  }
+
+  class Display <<final>> {
+    - {static} BOX_WIDTH : int = 64 {readOnly}
+    - {static} INVOICE_WIDTH : int = 62 {readOnly}
+    - {static} ROOM_COLS : int[] {readOnly}
+    - {static} ROOM_ROW : String {readOnly}
+    - {static} GUEST_COLS : int[] {readOnly}
+    - {static} GUEST_ROW : String {readOnly}
+    - {static} BOOKING_COLS : int[] {readOnly}
+    - {static} BOOKING_ROW : String {readOnly}
+    - {static} INVOICE_COLS : int[] {readOnly}
+    - {static} INVOICE_ROW : String {readOnly}
+    --
+    - Display()
+    + {static} printBox(title : String) : void
+    + {static} printRooms(rooms : List<Room>) : void
+    + {static} describeRoom(room : Room) : String
+    + {static} printGuests(guests : List<Guest>) : void
+    + {static} printBookings(bookings : List<Booking>) : void
+    + {static} describeBooking(booking : Booking) : String
+    + {static} printInvoiceHistory(invoices : List<Invoice>) : void
+    + {static} printInvoice(invoice : Invoice) : void
+    - {static} printInvoiceGuest(guest : Guest) : void
+    - {static} printInvoiceStay(booking : Booking, extraGuests : int) : void
+    - {static} printInvoiceCharges(invoice : Invoice) : void
+    - {static} invoiceLine(text : String) : void
+    - {static} invoiceField(label : String, value : String) : void
+    - {static} invoiceAmount(label : String, amount : BigDecimal) : void
+    - {static} separator(widths : int[]) : String
+    - {static} fit(text : String, width : int) : String
+  }
+}
+
+' =====================================================================
+' Classes detailed in diagram 1 (members hidden here)
+package "smartstay.service" {
+  class RoomManager
+  class GuestManager
+  class BookingManager
+  class BillingManager
+  class SampleDataLoader
+}
+package "smartstay.model" {
+  class Guest
+  abstract class Room
+  class Booking
+  class Invoice
+}
+package "smartstay.util" {
+  class Validator
+  class MoneyFormatter
+}
+package "smartstay.exception" {
+  class HotelException
+  class GoBackException
+}
+package "org.jline (external library)" {
+  interface Terminal
+  interface LineReader
+  class BindingReader
+  class "KeyMap<String>" as KeyMap
+}
+
+' =====================================================================
+' Nesting (TextCheck and ScreenAction are declared inside ConsoleIO)
+ConsoleIO +-- TextCheck
+ConsoleIO +-- ScreenAction
+
+' Association: screen navigation (field references)
+MainScreen "1" --> "1" AdminScreen : -adminScreen
+MainScreen "1" --> "1" GuestScreen : -guestScreen
+AdminScreen "1" --> "1" AdminRoomScreen : -roomScreen
+AdminScreen "1" --> "1" AdminGuestScreen : -guestScreen
+AdminScreen "1" --> "1" AdminBookingScreen : -bookingScreen
+AdminScreen "1" --> "1" AdminInvoiceScreen : -invoiceScreen
+
+' Association: shared helpers
+MainScreen "0..*" --> "1" ConsoleIO : -io
+AdminScreen "0..*" --> "1" ConsoleIO : -io
+AdminRoomScreen "0..*" --> "1" ConsoleIO : -io
+AdminGuestScreen "0..*" --> "1" ConsoleIO : -io
+AdminBookingScreen "0..*" --> "1" ConsoleIO : -io
+AdminInvoiceScreen "0..*" --> "1" ConsoleIO : -io
+GuestScreen "0..*" --> "1" ConsoleIO : -io
+SharedForms "0..*" --> "1" ConsoleIO : -io
+Menu "0..*" --> "1" ConsoleIO : -io
+
+AdminRoomScreen "0..*" --> "1" SharedForms : -forms
+AdminGuestScreen "0..*" --> "1" SharedForms : -forms
+AdminBookingScreen "0..*" --> "1" SharedForms : -forms
+GuestScreen "0..*" --> "1" SharedForms : -forms
+
+ConsoleIO "1" --> "0..1" ArrowKeyReader : -arrowReader
+GuestScreen "1" --> "0..1" Guest : -currentGuest
+
+' Association: screens to the business layer
+AdminRoomScreen "0..*" --> "1" RoomManager : -roomManager
+AdminGuestScreen "0..*" --> "1" GuestManager : -guestManager
+AdminBookingScreen "0..*" --> "1" BookingManager : -bookingManager
+AdminInvoiceScreen "0..*" --> "1" BookingManager : -bookingManager
+AdminInvoiceScreen "0..*" --> "1" BillingManager : -billingManager
+GuestScreen "0..*" --> "1" GuestManager : -guestManager
+GuestScreen "0..*" --> "1" BookingManager : -bookingManager
+GuestScreen "0..*" --> "1" BillingManager : -billingManager
+SharedForms "0..*" --> "1" RoomManager : -roomManager
+SharedForms "0..*" --> "1" GuestManager : -guestManager
+SharedForms "0..*" --> "1" BookingManager : -bookingManager
+
+' Association: JLine
+ArrowKeyReader "1" --> "1" Terminal : -terminal
+ArrowKeyReader "1" --> "1" LineReader : -lineReader
+ArrowKeyReader "1" --> "1" BindingReader : -keyReader
+ArrowKeyReader "1" --> "1" KeyMap : -menuKeys
+
+' Dependency (creates / uses / throws)
+SmartStayApp ..> MainScreen : <<create>>
+SmartStayApp ..> AdminScreen : <<create>>
+SmartStayApp ..> GuestScreen : <<create>>
+SmartStayApp ..> AdminRoomScreen : <<create>>
+SmartStayApp ..> AdminGuestScreen : <<create>>
+SmartStayApp ..> AdminBookingScreen : <<create>>
+SmartStayApp ..> AdminInvoiceScreen : <<create>>
+SmartStayApp ..> SharedForms : <<create>>
+SmartStayApp ..> ConsoleIO : <<create>>
+SmartStayApp ..> RoomManager : <<create>>
+SmartStayApp ..> GuestManager : <<create>>
+SmartStayApp ..> BookingManager : <<create>>
+SmartStayApp ..> BillingManager : <<create>>
+SmartStayApp ..> SampleDataLoader : <<use>>
+
+MainScreen ..> Menu : <<create>>
+AdminScreen ..> Menu : <<create>>
+AdminRoomScreen ..> Menu : <<create>>
+AdminGuestScreen ..> Menu : <<create>>
+AdminBookingScreen ..> Menu : <<create>>
+AdminInvoiceScreen ..> Menu : <<create>>
+GuestScreen ..> Menu : <<create>>
+SharedForms ..> Menu : <<create>>
+Menu ..> ArrowKeyReader : <<use>>
+Menu ..> Display : <<use>>
+
+MainScreen ..> Display : <<use>>
+AdminScreen ..> Display : <<use>>
+AdminRoomScreen ..> Display : <<use>>
+AdminGuestScreen ..> Display : <<use>>
+AdminBookingScreen ..> Display : <<use>>
+AdminInvoiceScreen ..> Display : <<use>>
+GuestScreen ..> Display : <<use>>
+SharedForms ..> Display : <<use>>
+
+SharedForms ..> Validator : <<use>>
+SharedForms ..> MoneyFormatter : <<use>>
+AdminRoomScreen ..> Validator : <<use>>
+AdminGuestScreen ..> Validator : <<use>>
+GuestScreen ..> Validator : <<use>>
+GuestScreen ..> MoneyFormatter : <<use>>
+Display ..> MoneyFormatter : <<use>>
+ConsoleIO ..> Validator : <<use>>
+
+Display ..> Room : <<use>>
+Display ..> Guest : <<use>>
+Display ..> Booking : <<use>>
+Display ..> Invoice : <<use>>
+Display ..> BillingManager : <<use>>
+
+ConsoleIO ..> GoBackException : <<throws>>
+ConsoleIO ..> HotelException : <<catches>>
+ConsoleIO ..> TextCheck : <<use>>
+ConsoleIO ..> ScreenAction : <<use>>
+SharedForms ..> GoBackException : <<throws>>
+GuestScreen ..> GoBackException : <<throws>>
+AdminScreen ..> GoBackException : <<catches>>
+
+note as N1
+  The screens and SharedForms also use model types
+  (Room, Booking, Invoice, RoomType, BedType, RoomStatus,
+  BookingStatus) as parameters and return values, and
+  their actions throw HotelException subclasses to
+  ConsoleIO.runAction(). Those dependency lines are left
+  out to keep the diagram readable.
+end note
+
+@enduml
