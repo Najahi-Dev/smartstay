@@ -7,3 +7,6 @@ sources.txt
 
 # Word lock files made while a .docx is open
 ~$*
+
+# Report documents (kept local, not uploaded)
+Report_*.docx
