@@ -17,17 +17,13 @@ import java.util.Optional;
  * Works out bills and keeps the invoice history.
  *
  * The bill always follows the same five steps (see calculateInvoice).
- * Creating a real invoice also marks the booking as Completed. A guest can
- * see an estimate before that, which uses the same calculation but is not
- * saved.
+ * Creating an invoice also marks the booking as Completed. Guests can view
+ * the invoices that were made for their own bookings.
  */
 public class BillingManager {
 
     public static final int DISCOUNT_MIN_NIGHTS = 5;
     public static final BigDecimal DISCOUNT_RATE = new BigDecimal("0.12");
-
-    /** Shown as the invoice number on an estimate, which is never saved. */
-    public static final String ESTIMATE_ID = "ESTIMATE";
 
     private final List<Invoice> invoices = new ArrayList<>(); // kept in issue order
     private final BookingManager bookingManager;
@@ -59,9 +55,15 @@ public class BillingManager {
         return invoice;
     }
 
-    /** Same calculation as a real invoice, but not saved and the booking is not changed. */
-    public Invoice estimateInvoice(Booking booking) {
-        return calculateInvoice(booking, ESTIMATE_ID);
+    /** Invoices already made for one guest's bookings, in issue order. */
+    public List<Invoice> getInvoicesForGuest(String nic) {
+        List<Invoice> list = new ArrayList<>();
+        for (Invoice invoice : invoices) {
+            if (invoice.getBooking().getGuest().getNic().equals(nic)) {
+                list.add(invoice);
+            }
+        }
+        return list;
     }
 
     public Optional<Invoice> findInvoiceForBooking(String bookingId) {

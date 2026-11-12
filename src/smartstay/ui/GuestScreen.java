@@ -4,7 +4,6 @@ import smartstay.exception.GoBackException;
 import smartstay.exception.HotelException;
 import smartstay.exception.ValidationException;
 import smartstay.model.Booking;
-import smartstay.model.BookingStatus;
 import smartstay.model.Guest;
 import smartstay.model.Invoice;
 import smartstay.service.BillingManager;
@@ -15,11 +14,11 @@ import smartstay.util.Validator;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 /**
- * Everything a guest can do: register / log in, then the guest menu
- * (search rooms, reserve, search/view/modify/cancel reservations, print invoice).
+ * Everything a guest can do: register / log in, then the guest menu, which
+ * is split into categories: Rooms (search), Reservations (make, search,
+ * view, modify, cancel) and Invoices (view printed invoices).
  * The logged in guest is kept in a field while the guest menu is open.
  */
 public class GuestScreen {
@@ -72,10 +71,10 @@ public class GuestScreen {
         io.printSuccess("Welcome, " + currentGuest.getFullName() + ".");
     }
 
+    /** Top level guest menu: one entry per category, each opens its own sub menu. */
     private void showGuestMenu() {
         Menu menu = new Menu(io, "Guest Menu - " + currentGuest.getFullName(), List.of(
-                "Search Room", "Make Reservation", "Search Reservation", "View by Check-in Date",
-                "Modify Reservation", "Cancel Reservation", "Print Invoice", "Back (log out)"));
+                "Rooms", "Reservations", "Invoices", "Back (log out)"));
         while (true) {
             int choice = menu.show();
             if (menu.isLast(choice)) {
@@ -83,15 +82,53 @@ public class GuestScreen {
                 return;
             }
             switch (choice) {
-                case 0 -> io.runAction(forms::searchRoomsForm);
-                case 1 -> io.runAction(() -> forms.bookingForm(currentGuest));
-                case 2 -> io.runAction(this::searchReservation);
-                case 3 -> io.runAction(this::viewByCheckInDate);
-                case 4 -> io.runAction(this::modifyReservation);
-                case 5 -> io.runAction(this::cancelReservation);
-                case 6 -> io.runAction(this::printInvoice);
+                case 0 -> showRoomsMenu();
+                case 1 -> showReservationsMenu();
+                case 2 -> showInvoicesMenu();
                 default -> io.printError("Unknown option.");
             }
+        }
+    }
+
+    private void showRoomsMenu() {
+        Menu menu = new Menu(io, "Guest > Rooms", List.of("Search Room", "Back"));
+        while (true) {
+            int choice = menu.show();
+            if (menu.isLast(choice)) {
+                return;
+            }
+            io.runAction(forms::searchRoomsForm);
+        }
+    }
+
+    private void showReservationsMenu() {
+        Menu menu = new Menu(io, "Guest > Reservations", List.of(
+                "Make Reservation", "Search Reservation", "View by Check-in Date",
+                "Modify Reservation", "Cancel Reservation", "Back"));
+        while (true) {
+            int choice = menu.show();
+            if (menu.isLast(choice)) {
+                return;
+            }
+            switch (choice) {
+                case 0 -> io.runAction(() -> forms.bookingForm(currentGuest));
+                case 1 -> io.runAction(this::searchReservation);
+                case 2 -> io.runAction(this::viewByCheckInDate);
+                case 3 -> io.runAction(this::modifyReservation);
+                case 4 -> io.runAction(this::cancelReservation);
+                default -> io.printError("Unknown option.");
+            }
+        }
+    }
+
+    private void showInvoicesMenu() {
+        Menu menu = new Menu(io, "Guest > Invoices", List.of("View Printed Invoice", "Back"));
+        while (true) {
+            int choice = menu.show();
+            if (menu.isLast(choice)) {
+                return;
+            }
+            io.runAction(this::viewPrintedInvoice);
         }
     }
 
@@ -119,13 +156,13 @@ public class GuestScreen {
 
     /** Change the room, dates or guest count of one of the guest's own active bookings. */
     private void modifyReservation() throws HotelException {
-        Booking booking = chooseOwnBooking("Modify which reservation?", true);
+        Booking booking = chooseOwnBooking("Modify which reservation?");
         bookingManager.checkCanModify(booking); // check the 24 hour rule before asking anything
         forms.changeBookingForm(booking);
     }
 
     private void cancelReservation() throws HotelException {
-        Booking booking = chooseOwnBooking("Cancel which reservation?", true);
+        Booking booking = chooseOwnBooking("Cancel which reservation?");
         bookingManager.checkCanCancel(booking); // check the 24 hour rule before asking Y/N
         if (!io.confirm("  Cancel " + booking.getBookingId() + "?")) {
             io.printInfo("Reservation kept.");
@@ -137,27 +174,39 @@ public class GuestScreen {
     }
 
     /**
-     * Shows the real invoice if the admin already made one, otherwise an
-     * estimate using the same calculation (nothing is saved).
+     * Shows an invoice the admin has already printed for one of the guest's
+     * bookings. Invoices are made at check-out, so a booking that is still
+     * Confirmed has no invoice yet.
      */
-    private void printInvoice() throws HotelException {
-        Booking booking = chooseOwnBooking("Print invoice for which reservation?", false);
-        Optional<Invoice> invoice = billingManager.findInvoiceForBooking(booking.getBookingId());
-        Display.printInvoice(invoice.orElseGet(() -> billingManager.estimateInvoice(booking)));
+    private void viewPrintedInvoice() throws HotelException {
+        List<Invoice> invoices = billingManager.getInvoicesForGuest(currentGuest.getNic());
+        if (invoices.isEmpty()) {
+            throw new HotelException("You have no printed invoices yet. "
+                    + "The hotel prints the invoice at check-out.");
+        }
+        List<String> options = new ArrayList<>();
+        for (Invoice invoice : invoices) {
+            options.add(invoice.getInvoiceId() + "  " + invoice.getIssuedOn() + "  "
+                    + Display.describeBooking(invoice.getBooking()));
+        }
+        options.add("Back");
+        Menu menu = new Menu(io, "View which invoice?", options);
+        int choice = menu.show();
+        if (menu.isLast(choice)) {
+            throw new GoBackException();
+        }
+        Display.printInvoice(invoices.get(choice));
     }
 
     /**
-     * Lets the guest pick one of their own bookings from a menu.
-     * activeOnly = true shows only Confirmed bookings (for cancelling);
-     * otherwise every booking except Cancelled ones (for invoices).
+     * Lets the guest pick one of their own active bookings from a menu.
+     * Only Confirmed bookings are shown, because only they can be
+     * changed or cancelled.
      */
-    private Booking chooseOwnBooking(String title, boolean activeOnly)
-            throws HotelException {
+    private Booking chooseOwnBooking(String title) throws HotelException {
         List<Booking> choices = new ArrayList<>();
         for (Booking booking : bookingManager.getBookingsForGuest(currentGuest.getNic())) {
-            boolean cancelled = booking.getStatus() == BookingStatus.CANCELLED;
-            boolean wanted = activeOnly ? booking.isActive() : !cancelled;
-            if (wanted) {
+            if (booking.isActive()) {
                 choices.add(booking);
             }
         }

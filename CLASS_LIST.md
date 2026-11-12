@@ -158,9 +158,8 @@ All four have the same members, only the values differ:
 |--------|---------|
 | `+ DISCOUNT_MIN_NIGHTS : int {static, final} = 5` | `+ BillingManager(bookingManager : BookingManager)` |
 | `+ DISCOUNT_RATE : BigDecimal {static, final} = 0.12` | `+ createInvoice(bookingId : String) : Invoice` |
-| `+ ESTIMATE_ID : String {static, final}` | `+ estimateInvoice(booking : Booking) : Invoice` |
 | `- invoices : List<Invoice>` (ArrayList) | `+ findInvoiceForBooking(bookingId : String) : Optional<Invoice>` |
-| `- bookingManager : BookingManager {final}` | `+ getInvoiceHistory() : List<Invoice>` |
+| `- bookingManager : BookingManager {final}` | `+ getInvoiceHistory() : List<Invoice>`, `+ getInvoicesForGuest(nic : String) : List<Invoice>` |
 | `- lastInvoiceNumber : int` | `- calculateInvoice(booking : Booking, invoiceId : String) : Invoice` |
 | | `- money(value : BigDecimal) : BigDecimal`, `- nextInvoiceId() : String` |
 
@@ -267,7 +266,7 @@ Nested «interface»s inside ConsoleIO (both `@FunctionalInterface`):
 | AdminGuestScreen | io, forms, guestManager | `+ show()` (+ private removeGuest, updateGuest, viewGuests) |
 | AdminBookingScreen | io, forms, bookingManager | `+ show()` (+ private createBooking, viewBookings) |
 | AdminInvoiceScreen | io, bookingManager, billingManager | `+ show()` (+ private createInvoice, viewHistory) |
-| GuestScreen | io, forms, guestManager, bookingManager, billingManager, `- currentGuest : Guest` | `+ show()` (+ private login, showGuestMenu, searchReservation, viewByCheckInDate, modifyReservation, cancelReservation, printInvoice, chooseOwnBooking, checkSearchText) |
+| GuestScreen | io, forms, guestManager, bookingManager, billingManager, `- currentGuest : Guest` | `+ show()` (+ private login, showGuestMenu, showRoomsMenu, showReservationsMenu, showInvoicesMenu, searchReservation, viewByCheckInDate, modifyReservation, cancelReservation, viewPrintedInvoice, chooseOwnBooking, checkSearchText) |
 
 ---
 

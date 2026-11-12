@@ -4,7 +4,6 @@ import smartstay.model.Booking;
 import smartstay.model.Guest;
 import smartstay.model.Invoice;
 import smartstay.model.Room;
-import smartstay.service.BillingManager;
 import smartstay.util.MoneyFormatter;
 
 import java.math.BigDecimal;
@@ -151,12 +150,11 @@ public final class Display {
     /** Prints the full invoice with all the details the brief asks for. */
     public static void printInvoice(Invoice invoice) {
         Booking booking = invoice.getBooking();
-        boolean estimate = BillingManager.ESTIMATE_ID.equals(invoice.getInvoiceId());
         String border = "+" + "-".repeat(INVOICE_WIDTH - 2) + "+";
 
         System.out.println();
         System.out.println(border);
-        invoiceLine(estimate ? "SMARTSTAY HOTEL - ESTIMATED BILL" : "SMARTSTAY HOTEL - INVOICE");
+        invoiceLine("SMARTSTAY HOTEL - INVOICE");
         System.out.println(border);
         invoiceField("Invoice No", invoice.getInvoiceId());
         invoiceField("Date", invoice.getIssuedOn().toString());
@@ -168,9 +166,6 @@ public final class Display {
         System.out.println(border);
         printInvoiceCharges(invoice);
         System.out.println(border);
-        if (estimate) {
-            System.out.println("  This is an estimate. The final invoice is made at check-out.");
-        }
     }
 
     private static void printInvoiceGuest(Guest guest) {

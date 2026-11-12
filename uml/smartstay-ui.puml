@@ -111,11 +111,15 @@ package "smartstay.ui" {
     + show() : void
     - login() : void
     - showGuestMenu() : void
+    - showRoomsMenu() : void
+    - showReservationsMenu() : void
+    - showInvoicesMenu() : void
     - searchReservation() : void
     - viewByCheckInDate() : void
+    - modifyReservation() : void
     - cancelReservation() : void
-    - printInvoice() : void
-    - chooseOwnBooking(title : String, activeOnly : boolean) : Booking
+    - viewPrintedInvoice() : void
+    - chooseOwnBooking(title : String) : Booking
     - checkSearchText(raw : String) : String
   }
 

@@ -25,6 +25,7 @@ so the tests work on any day.
 | TC-06 | Fallback | Run inside the IDE Run console (or with `--numbered`) | start program | `Numbered menus are on...` shown; menus show numbers and `Hint: type a number and press ENTER.` | | |
 | TC-07 | Back in form | Leave a form part way | Admin > Room Mgmt > Add Room, type `#` | `Cancelled - nothing was changed.`, back to Room Management menu | | |
 | TC-08 | Back option | Every menu has Back | Open each menu | Last option is Back (Exit on the main menu) | | |
+| TC-92 | Guest menu | Menu grouped by category | Login `200012345678` | Guest Menu shows Rooms, Reservations, Invoices, Back (log out). Rooms has Search Room. Reservations has Make, Search, View by Check-in Date, Modify, Cancel. Invoices has View Printed Invoice. Each has Back | | |
 | TC-09 | Robustness | End of input | Press Ctrl+Z then ENTER (Windows) / Ctrl+D (Mac/Linux) at a prompt | `Input closed. Goodbye!`, program ends without an error trace | | |
 
 ## 2. Admin login
@@ -110,23 +111,23 @@ so the tests work on any day.
 
 | Test ID | Feature | Description | Input | Expected result | Actual result | Pass/Fail |
 |---|---|---|---|---|---|---|
-| TC-59 | Cancel | More than 24 h before check-in | Login `200012345678` > Cancel > BK-0001 > `Y` | `Reservation BK-0001 cancelled. Your advance of LKR 10,000.00 will be refunded.` R201 back to Available | | |
-| TC-60 | Cancel | Within 24 h of check-in | Login `987654321V` > Cancel > BK-0002 | `Reservations cannot be cancelled within 24 hours of check-in (check-in is T at 14:00).` Booking stays Confirmed | | |
+| TC-59 | Cancel | More than 24 h before check-in | Login `200012345678` > Reservations > Cancel Reservation > BK-0001 > `Y` | `Reservation BK-0001 cancelled. Your advance of LKR 10,000.00 will be refunded.` R201 back to Available | | |
+| TC-60 | Cancel | Within 24 h of check-in | Login `987654321V` > Reservations > Cancel Reservation > BK-0002 | `Reservations cannot be cancelled within 24 hours of check-in (check-in is T at 14:00).` Booking stays Confirmed | | |
 | TC-61 | Cancel | Say No at confirm | BK-0001, `N` | `Reservation kept.` | | |
-| TC-62 | Cancel | Guest has no active booking | Login `N1234567` > Cancel | `You have no reservations for this option.` | | |
+| TC-62 | Cancel | Guest has no active booking | Login `N1234567` > Reservations > Cancel Reservation | `You have no reservations for this option.` | | |
 
 ## 8b. Modify reservation (Guest)
 
 | Test ID | Feature | Description | Input | Expected result | Actual result | Pass/Fail |
 |---|---|---|---|---|---|---|
-| TC-84 | Modify | Change dates and guests, same room | Login `200012345678` > Modify Reservation > BK-0001 > Deluxe, T+12 to T+15, R201, 2 guests, `Y` | `[OK] Booking BK-0001 changed: BK-0001  R201 Deluxe  T+12 to T+15`. Still BK-0001, still Confirmed. R201 is offered even though it shows Reserved (only this booking holds it) | | |
+| TC-84 | Modify | Change dates and guests, same room | Login `200012345678` > Reservations > Modify Reservation > BK-0001 > Deluxe, T+12 to T+15, R201, 2 guests, `Y` | `[OK] Booking BK-0001 changed: BK-0001  R201 Deluxe  T+12 to T+15`. Still BK-0001, still Confirmed. R201 is offered even though it shows Reserved (only this booking holds it) | | |
 | TC-85 | Modify | Move to another room | Modify BK-0001 > Standard, T+12 to T+15, R101, 2 guests, `Y` | Booking now on R101. Search Deluxe for the same dates lists **R201 as Available** again | | |
-| TC-86 | Modify | Estimate after the change | Print Invoice > BK-0001 after TC-85 | Estimate uses the new details: 3 nights Standard, Total 19,800.00, Final payable 9,800.00 | | |
-| TC-87 | Modify | Within 24 h of check-in | Login `987654321V` > Modify Reservation > BK-0002 | `Reservations cannot be changed within 24 hours of check-in (check-in is T at 14:00).` Nothing asked, booking unchanged | | |
+| TC-86 | Modify | Invoice after the change | Admin > Invoice Mgmt > Create Invoice > BK-0001 after TC-85 | Invoice uses the new details: R101 Standard, 3 nights, Total 19,800.00, Final payable 9,800.00 | | |
+| TC-87 | Modify | Within 24 h of check-in | Login `987654321V` > Reservations > Modify Reservation > BK-0002 | `Reservations cannot be changed within 24 hours of check-in (check-in is T at 14:00).` Nothing asked, booking unchanged | | |
 | TC-88 | Modify | New check-in too soon | Modify BK-0001, check-in T+1 | `Check-in must be at least 2 days from today (earliest: T+2).` Asks again | | |
 | TC-89 | Modify | Say No at confirm | Modify BK-0001 ... `N` | `Booking not changed.` Old details kept | | |
 | TC-90 | Modify | Go back part way | Modify BK-0001, type `#` at the date | `Cancelled - nothing was changed.` | | |
-| TC-91 | Modify | Guest with no active booking | Login `N1234567` > Modify Reservation | `You have no reservations for this option.` | | |
+| TC-91 | Modify | Guest with no active booking | Login `N1234567` > Reservations > Modify Reservation | `You have no reservations for this option.` | | |
 
 ## 9. Invoices
 
@@ -142,8 +143,8 @@ so the tests work on any day.
 | TC-70 | Invoice | Cancelled booking | Cancel a booking, then create its invoice | `Booking BK-000X is Cancelled, so no invoice can be created.` | | |
 | TC-71 | Invoice | Unknown booking | `BK-9999` | `No booking found with ID BK-9999.` | | |
 | TC-72 | Invoice | Invoice history | View Invoice History | Table with invoice no., date, booking, guest, room, payable, in issue order | | |
-| TC-73 | Invoice | Guest prints before final invoice | Login `987654321V` > Print Invoice > BK-0002 | `SMARTSTAY HOTEL - ESTIMATED BILL`: Base 42,000.00, Tax 6,300.00, Total 48,300.00, Final 38,300.00 | | |
-| TC-74 | Invoice | Guest prints after final invoice | After TC-63, login `200012345678` > Print Invoice > BK-0001 | Shows `SMARTSTAY HOTEL - INVOICE` with `INV-0001` | | |
+| TC-73 | Invoice | Guest views invoice before one is printed | Login `987654321V` > Invoices > View Printed Invoice | `You have no printed invoices yet. The hotel prints the invoice at check-out.` | | |
+| TC-74 | Invoice | Guest views printed invoice | After TC-63, login `200012345678` > Invoices > View Printed Invoice > INV-0001 | List shows `INV-0001  <date>  BK-0001 ... (Completed)`. Picking it shows `SMARTSTAY HOTEL - INVOICE`, Final payable 53,302.40. Only this guest's invoices are listed | | |
 | TC-75 | Invoice | All required fields shown | any invoice | Booking ID, guest name/NIC/phone/email, room ID/type/bed/daily rate, check-in, check-out, nights, guests, base, extra, discount, tax, advance, final payable | | |
 
 ## 10. Searching and sorting bookings

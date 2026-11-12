@@ -277,16 +277,15 @@ package "smartstay.service" {
   class BillingManager {
     + {static} DISCOUNT_MIN_NIGHTS : int = 5 {readOnly}
     + {static} DISCOUNT_RATE : BigDecimal = 0.12 {readOnly}
-    + {static} ESTIMATE_ID : String = "ESTIMATE" {readOnly}
     - invoices : List<Invoice> {readOnly}
     - bookingManager : BookingManager {readOnly}
     - lastInvoiceNumber : int
     --
     + BillingManager(bookingManager : BookingManager)
     + createInvoice(bookingId : String) : Invoice
-    + estimateInvoice(booking : Booking) : Invoice
     + findInvoiceForBooking(bookingId : String) : Optional<Invoice>
     + getInvoiceHistory() : List<Invoice>
+    + getInvoicesForGuest(nic : String) : List<Invoice>
     - calculateInvoice(booking : Booking, invoiceId : String) : Invoice
     - money(value : BigDecimal) : BigDecimal
     - nextInvoiceId() : String
