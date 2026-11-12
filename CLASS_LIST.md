@@ -227,7 +227,7 @@ Each has one constructor `+ <Name>(message : String)` (GoBackException has a no-
 | | `+ readNumber(prompt, min, max) : int`, `+ readDate(prompt) : LocalDate` |
 | | `+ readPassword(prompt) : String`, `+ confirm(question) : boolean`, `+ pause() : void` |
 | | `+ runAction(action : ScreenAction) : void` |
-| | `+ printError(msg)`, `+ printSuccess(msg)`, `+ printInfo(msg)` |
+| | `+ printError(msg)`, `+ printSuccess(msg)`, `+ printInfo(msg)`, `+ printHint(msg)` |
 | | `- createArrowReader() : ArrowKeyReader {static}`, `- readPlainLine() : String` |
 
 Nested «interface»s inside ConsoleIO (both `@FunctionalInterface`):
@@ -244,10 +244,19 @@ Nested «interface»s inside ConsoleIO (both `@FunctionalInterface`):
 | `- menuKeys : KeyMap<String>` | `- drawOptions(...)`, `- buildMenuKeys(...) {static}`, `- bindIfKnown(...) {static}` |
 
 ### Display (final, static only)
-- `+ printBox(title)`, `+ printRooms(List<Room>)`, `+ describeRoom(Room) : String`
+- `+ printBox(title)`, `+ printBox(title, important : boolean)`, `+ printRooms(List<Room>)`, `+ describeRoom(Room) : String`
 - `+ printGuests(List<Guest>)`, `+ printBookings(List<Booking>)`, `+ describeBooking(Booking) : String`
 - `+ printInvoiceHistory(List<Invoice>)`, `+ printInvoice(Invoice)`
-- private helpers: `printInvoiceGuest`, `printInvoiceStay`, `printInvoiceCharges`, `invoiceLine`, `invoiceField`, `invoiceAmount`, `separator`, `fit`
+- private helpers: `printInvoiceGuest`, `printInvoiceStay`, `printInvoiceCharges`, `invoiceLine`, `invoiceField`, `invoiceAmount`, `amountText`, `separator`, `pad`, `fit`
+
+### Colors (final, static only)
+| Fields | Methods |
+|--------|---------|
+| `- ESC, RESET : String {static, final}` | `+ enable(on : boolean) {static}`, `+ isEnabled() : boolean {static}` |
+| `- enabled : boolean {static}` | `+ red / green / yellow / cyan / grey / highlight(text : String) : String {static}` |
+| | `+ forRoomStatus(status : RoomStatus, text : String) : String {static}` |
+| | `+ forBookingStatus(status : BookingStatus, text : String) : String {static}` |
+| | `- wrap(code : String, text : String) : String {static}` |
 
 ### SharedForms
 - Fields: `- io : ConsoleIO`, `- roomManager : RoomManager`, `- guestManager : GuestManager`, `- bookingManager : BookingManager`

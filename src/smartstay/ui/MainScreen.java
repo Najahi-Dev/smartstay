@@ -43,6 +43,6 @@ public class MainScreen {
         } else {
             io.printInfo("Numbered menus are on (this terminal does not support arrow keys).");
         }
-        io.printInfo("Tip: in any form, type " + ConsoleIO.GO_BACK_KEY + " to go back.");
+        io.printHint("Tip: in any form, type " + ConsoleIO.GO_BACK_KEY + " to go back.");
     }
 }

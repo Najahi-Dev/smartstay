@@ -32,7 +32,7 @@ public class ArrowKeyReader {
 
     // ANSI escape codes (understood by Windows Terminal, PowerShell, macOS and Linux terminals)
     private static final String ESC = "\u001B[";
-    private static final String HIGHLIGHT_ON = ESC + "7m";   // reverse colours
+    private static final String HIGHLIGHT_ON = ESC + "1;30;46m"; // bold black text on cyan
     private static final String HIGHLIGHT_OFF = ESC + "0m";
     private static final String CLEAR_LINE = "\r" + ESC + "2K";
 
@@ -131,7 +131,7 @@ public class ArrowKeyReader {
                 out.print(CLEAR_LINE + "  " + line + "\n");
             }
         }
-        out.print(CLEAR_LINE + "  " + hint + "\n");
+        out.print(CLEAR_LINE + "  " + Colors.grey(hint) + "\n");
         out.flush();
     }
 

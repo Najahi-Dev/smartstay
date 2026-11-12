@@ -177,6 +177,7 @@ package "smartstay.ui" {
     + printError(message : String) : void
     + printSuccess(message : String) : void
     + printInfo(message : String) : void
+    + printHint(message : String) : void
     - {static} createArrowReader() : ArrowKeyReader
     - readPlainLine() : String
   }
@@ -227,6 +228,7 @@ package "smartstay.ui" {
     --
     - Display()
     + {static} printBox(title : String) : void
+    + {static} printBox(title : String, important : boolean) : void
     + {static} printRooms(rooms : List<Room>) : void
     + {static} describeRoom(room : Room) : String
     + {static} printGuests(guests : List<Guest>) : void
@@ -240,8 +242,29 @@ package "smartstay.ui" {
     - {static} invoiceLine(text : String) : void
     - {static} invoiceField(label : String, value : String) : void
     - {static} invoiceAmount(label : String, amount : BigDecimal) : void
+    - {static} amountText(label : String, amount : BigDecimal) : String
     - {static} separator(widths : int[]) : String
+    - {static} pad(text : Object, width : int) : String
     - {static} fit(text : String, width : int) : String
+  }
+
+  class Colors <<final>> {
+    - {static} ESC : String {readOnly}
+    - {static} RESET : String {readOnly}
+    - {static} enabled : boolean
+    --
+    - Colors()
+    + {static} enable(on : boolean) : void
+    + {static} isEnabled() : boolean
+    + {static} red(text : String) : String
+    + {static} green(text : String) : String
+    + {static} yellow(text : String) : String
+    + {static} cyan(text : String) : String
+    + {static} grey(text : String) : String
+    + {static} highlight(text : String) : String
+    + {static} forRoomStatus(status : RoomStatus, text : String) : String
+    + {static} forBookingStatus(status : BookingStatus, text : String) : String
+    - {static} wrap(code : String, text : String) : String
   }
 }
 
@@ -375,7 +398,10 @@ Display ..> Room : <<use>>
 Display ..> Guest : <<use>>
 Display ..> Booking : <<use>>
 Display ..> Invoice : <<use>>
-Display ..> BillingManager : <<use>>
+Display ..> Colors : <<use>>
+ConsoleIO ..> Colors : <<use>>
+Menu ..> Colors : <<use>>
+ArrowKeyReader ..> Colors : <<use>>
 
 ConsoleIO ..> GoBackException : <<throws>>
 ConsoleIO ..> HotelException : <<catches>>

@@ -160,7 +160,7 @@ public class ConsoleIO {
     /** Y/N question. Anything other than y/yes/n/no asks again. */
     public boolean confirm(String question) {
         while (true) {
-            String answer = readText(question + " (Y/N): ").toLowerCase();
+            String answer = readText(Colors.yellow(question + " (Y/N):") + " ").toLowerCase();
             if (answer.equals("y") || answer.equals("yes")) {
                 return true;
             }
@@ -172,7 +172,7 @@ public class ConsoleIO {
     }
 
     public void pause() {
-        readLine("\nPress ENTER to continue...");
+        readLine("\n" + Colors.grey("Press ENTER to continue..."));
     }
 
     /**
@@ -196,15 +196,20 @@ public class ConsoleIO {
     // ---------------- printing messages ----------------
 
     public void printError(String message) {
-        System.out.println("  [!] " + message);
+        System.out.println("  " + Colors.red("[!] " + message));
     }
 
     public void printSuccess(String message) {
-        System.out.println("  [OK] " + message);
+        System.out.println("  " + Colors.green("[OK] " + message));
     }
 
     public void printInfo(String message) {
         System.out.println("  " + message);
+    }
+
+    /** Less important help text, shown in grey when colour is on. */
+    public void printHint(String message) {
+        System.out.println("  " + Colors.grey(message));
     }
 
     // ---------------- private helpers ----------------

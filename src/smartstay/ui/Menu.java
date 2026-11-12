@@ -45,7 +45,7 @@ public class Menu {
         for (int i = 0; i < options.size(); i++) {
             System.out.printf("   %d. %s%n", i + 1, options.get(i));
         }
-        System.out.println("  Hint: type a number and press ENTER.");
+        System.out.println("  " + Colors.grey("Hint: type a number and press ENTER."));
         // Numbers on screen start at 1, but list indexes start at 0, hence the -1.
         // Not using io.readNumber here so that # is just "invalid", not "go back".
         while (true) {

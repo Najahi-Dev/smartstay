@@ -11,6 +11,7 @@ import smartstay.ui.AdminGuestScreen;
 import smartstay.ui.AdminInvoiceScreen;
 import smartstay.ui.AdminRoomScreen;
 import smartstay.ui.AdminScreen;
+import smartstay.ui.Colors;
 import smartstay.ui.ConsoleIO;
 import smartstay.ui.GuestScreen;
 import smartstay.ui.MainScreen;
@@ -47,6 +48,7 @@ public class SmartStayApp {
 
         // ----- UI layer -----
         ConsoleIO io = new ConsoleIO(forceNumbered);
+        Colors.enable(io.isArrowMode()); // colour only where the terminal supports it
         SharedForms forms = new SharedForms(io, roomManager, guestManager, bookingManager);
 
         AdminScreen adminScreen = new AdminScreen(io,

@@ -206,7 +206,7 @@ public class SharedForms {
     private void printBookingSummary(Guest guest, Room room, int numberOfGuests,
                                      LocalDate checkIn, LocalDate checkOut, String advanceNote) {
         System.out.println();
-        Display.printBox("Booking summary");
+        Display.printBox("Booking summary", true);
         io.printInfo("Guest     : " + guest.getFullName() + " (" + guest.getNic() + ")");
         io.printInfo("Room      : " + Display.describeRoom(room));
         io.printInfo("Dates     : " + checkIn + " to " + checkOut);

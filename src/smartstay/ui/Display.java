@@ -17,6 +17,8 @@ import java.util.List;
  * 10 characters wide" and %12s means "right aligned, 12 wide" (used for
  * money so the decimal points line up). Long text is cut with fit() so a
  * long name cannot push the columns out of line.
+ * Colour codes are added only AFTER the text is padded, otherwise printf
+ * would count the invisible codes and the borders would not line up.
  */
 public final class Display {
 
@@ -25,14 +27,14 @@ public final class Display {
 
     // ----- table layouts: the separator and the format must use the same widths -----
     private static final int[] ROOM_COLS = {6, 12, 6, 12, 9, 3, 17};
-    private static final String ROOM_ROW = "| %-6s | %-12s | %-6s | %12s | %-9s | %3s | %-17s |%n";
+    private static final String ROOM_ROW = "| %-6s | %-12s | %-6s | %12s | %-9s | %3s | %s |%n";
 
     private static final int[] GUEST_COLS = {12, 24, 10, 28};
     private static final String GUEST_ROW = "| %-12s | %-24s | %-10s | %-28s |%n";
 
     private static final int[] BOOKING_COLS = {7, 20, 5, 12, 10, 10, 6, 6, 9};
     private static final String BOOKING_ROW =
-            "| %-7s | %-20s | %-5s | %-12s | %-10s | %-10s | %6s | %6s | %-9s |%n";
+            "| %-7s | %-20s | %-5s | %-12s | %-10s | %-10s | %6s | %6s | %s |%n";
 
     private static final int[] INVOICE_COLS = {8, 10, 7, 20, 5, 16};
     private static final String INVOICE_ROW = "| %-8s | %-10s | %-7s | %-20s | %-5s | %16s |%n";
@@ -41,11 +43,17 @@ public final class Display {
         // only static methods
     }
 
-    /** Draws a title inside a + - | box. */
+    /** Draws a title inside a + - | box, title in cyan. */
     public static void printBox(String title) {
+        printBox(title, false);
+    }
+
+    /** important = true shows the title in bold yellow, e.g. the booking summary. */
+    public static void printBox(String title, boolean important) {
         String border = "+" + "-".repeat(BOX_WIDTH - 2) + "+";
+        String padded = pad(title, BOX_WIDTH - 4);
         System.out.println(border);
-        System.out.printf("| %-" + (BOX_WIDTH - 4) + "s |%n", title);
+        System.out.println("| " + (important ? Colors.highlight(padded) : Colors.cyan(padded)) + " |");
         System.out.println(border);
     }
 
@@ -58,13 +66,15 @@ public final class Display {
         }
         String separator = separator(ROOM_COLS);
         System.out.println(separator);
-        System.out.printf(ROOM_ROW, "Room", "Type", "Bed", "Rate (LKR)", "Breakfast", "Cap", "Status");
+        System.out.printf(ROOM_ROW, "Room", "Type", "Bed", "Rate (LKR)", "Breakfast", "Cap",
+                pad("Status", ROOM_COLS[6]));
         System.out.println(separator);
         for (Room room : rooms) {
             System.out.printf(ROOM_ROW, room.getRoomId(), room.getRoomType(), room.getBedType(),
                     MoneyFormatter.formatNumber(room.getDailyRate()),
                     room.includesBreakfast() ? "Yes" : "No",
-                    room.getCapacity(), room.getStatus());
+                    room.getCapacity(),
+                    Colors.forRoomStatus(room.getStatus(), pad(room.getStatus(), ROOM_COLS[6])));
         }
         System.out.println(separator);
         System.out.println("  Cap = guests included in the rate. Extra guests are charged per night.");
@@ -107,14 +117,16 @@ public final class Display {
         String separator = separator(BOOKING_COLS);
         System.out.println(separator);
         System.out.printf(BOOKING_ROW, "Booking", "Guest", "Room", "Type",
-                "Check-in", "Check-out", "Nights", "Guests", "Status");
+                "Check-in", "Check-out", "Nights", "Guests", pad("Status", BOOKING_COLS[8]));
         System.out.println(separator);
         for (Booking booking : bookings) {
             System.out.printf(BOOKING_ROW, booking.getBookingId(),
                     fit(booking.getGuest().getFullName(), 20),
                     booking.getRoom().getRoomId(), booking.getRoom().getRoomType(),
                     booking.getCheckIn(), booking.getCheckOut(), booking.getNights(),
-                    booking.getNumberOfGuests(), booking.getStatus());
+                    booking.getNumberOfGuests(),
+                    Colors.forBookingStatus(booking.getStatus(),
+                            pad(booking.getStatus(), BOOKING_COLS[8])));
         }
         System.out.println(separator);
     }
@@ -197,8 +209,11 @@ public final class Display {
         invoiceAmount("   Total", invoice.getTotalAmount());
         invoiceAmount("5. Advance deducted", invoice.getAdvanceDeducted().negate());
         System.out.println("|" + "=".repeat(INVOICE_WIDTH - 2) + "|");
-        invoiceAmount("FINAL PAYABLE", invoice.getFinalPayable());
-        if (invoice.getFinalPayable().signum() < 0) {
+        // final amount in bold yellow, or green when money goes back to the guest
+        boolean refund = invoice.getFinalPayable().signum() < 0;
+        String finalLine = amountText("FINAL PAYABLE", invoice.getFinalPayable());
+        System.out.println("| " + (refund ? Colors.green(finalLine) : Colors.highlight(finalLine)) + " |");
+        if (refund) {
             invoiceLine("(negative = balance refunded to the guest)");
         }
     }
@@ -213,8 +228,13 @@ public final class Display {
 
     /** Label on the left, money on the right, so all amounts line up. */
     private static void invoiceAmount(String label, BigDecimal amount) {
-        invoiceLine(String.format("%-36s %s", label,
-                String.format("%20s", MoneyFormatter.format(amount))));
+        invoiceLine(amountText(label, amount));
+    }
+
+    /** The amount line, padded to the invoice width (no colour yet). */
+    private static String amountText(String label, BigDecimal amount) {
+        String text = String.format("%-36s %20s", label, MoneyFormatter.format(amount));
+        return pad(text, INVOICE_WIDTH - 4);
     }
 
     // ---------------- small helpers ----------------
@@ -226,6 +246,11 @@ public final class Display {
             line.append("-".repeat(width + 2)).append("+");
         }
         return line.toString();
+    }
+
+    /** Pads text with spaces on the right to the given width. */
+    private static String pad(Object text, int width) {
+        return String.format("%-" + width + "s", text);
     }
 
     /** Cuts text that is longer than the column and adds "..". */

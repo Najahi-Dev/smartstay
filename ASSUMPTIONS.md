@@ -44,6 +44,3 @@
 | B30 | The admin gets 3 login attempts, then the program returns to the main menu. | A sensible limit. |
 | B31 | Typing `#` in any form goes back to the menu without saving. | The brief asks for a Back option everywhere, and forms are not menus. |
 | B32 | **The guest menu is grouped by category:** Rooms (Search Room), Reservations (Make, Search, View by Check-in Date, Modify, Cancel) and Invoices (View Printed Invoice). Each sub menu has its own Back. | Fewer options on one screen, and related tasks sit together. The brief does not fix the menu layout. |
-
-
-claude --resume 695fd1a6-eae5-428a-a623-bf25c1d74291
