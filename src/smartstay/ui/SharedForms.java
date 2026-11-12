@@ -21,7 +21,7 @@ import java.util.List;
 
 /**
  * Forms that both the admin screens and the guest screens need:
- * register a guest, search rooms, make a booking, and pick a room/bed type.
+ * register a guest, search rooms, make or change a booking, and pick a room/bed type.
  * Writing them once here avoids copying the same code into two screens.
  */
 public class SharedForms {
@@ -107,7 +107,8 @@ public class SharedForms {
         Room room = chooseRoom(rooms);
         int numberOfGuests = readGuestCount(room);
 
-        printBookingSummary(guest, room, numberOfGuests, checkIn, checkOut);
+        printBookingSummary(guest, room, numberOfGuests, checkIn, checkOut,
+                "(paid now, refundable)");
         if (!io.confirm("  Confirm this booking and pay the advance?")) {
             io.printInfo("Booking not made.");
             return;
@@ -117,6 +118,41 @@ public class SharedForms {
         io.printSuccess("Booking " + booking.getBookingId() + " confirmed. Advance of "
                 + MoneyFormatter.format(Booking.ADVANCE_AMOUNT) + " charged.");
         io.printInfo("The advance is refunded if you cancel more than 24 hours before check-in.");
+    }
+
+    /**
+     * The change steps: same as a new booking (room type -> dates -> room
+     * -> guests -> summary -> Y/N), but the booking keeps its ID and advance.
+     * The 24 hour rule is checked by the caller before this form opens, and
+     * again by BookingManager when the change is saved.
+     */
+    public void changeBookingForm(Booking booking) throws HotelException {
+        io.printInfo("Current booking: " + Display.describeBooking(booking));
+        io.printInfo("Enter the new details (type " + ConsoleIO.GO_BACK_KEY + " to go back).");
+        RoomType type = chooseRoomType("Change " + booking.getBookingId()
+                + " - choose a room type");
+        io.printInfo("Enter the new dates as yyyy-MM-dd.");
+        LocalDate checkIn = readCheckIn();
+        LocalDate checkOut = readCheckOut(checkIn);
+
+        List<Room> rooms = roomManager.findRoomsForChange(type, checkIn, checkOut, booking);
+        if (rooms.isEmpty()) {
+            throw new BusinessRuleException("No " + type + " rooms are available from "
+                    + checkIn + " to " + checkOut + ". Try other dates or another room type.");
+        }
+        Room room = chooseRoom(rooms);
+        int numberOfGuests = readGuestCount(room);
+
+        printBookingSummary(booking.getGuest(), room, numberOfGuests, checkIn, checkOut,
+                "(already paid, stays on this booking)");
+        if (!io.confirm("  Save these changes to " + booking.getBookingId() + "?")) {
+            io.printInfo("Booking not changed.");
+            return;
+        }
+        bookingManager.modifyBooking(booking.getBookingId(), room, numberOfGuests,
+                checkIn, checkOut);
+        io.printSuccess("Booking " + booking.getBookingId() + " changed: "
+                + Display.describeBooking(booking));
     }
 
     // ---------------- private helpers ----------------
@@ -168,7 +204,7 @@ public class SharedForms {
     }
 
     private void printBookingSummary(Guest guest, Room room, int numberOfGuests,
-                                     LocalDate checkIn, LocalDate checkOut) {
+                                     LocalDate checkIn, LocalDate checkOut, String advanceNote) {
         System.out.println();
         Display.printBox("Booking summary");
         io.printInfo("Guest     : " + guest.getFullName() + " (" + guest.getNic() + ")");
@@ -176,7 +212,7 @@ public class SharedForms {
         io.printInfo("Dates     : " + checkIn + " to " + checkOut);
         io.printInfo("Guests    : " + numberOfGuests);
         io.printInfo("Advance   : " + MoneyFormatter.format(Booking.ADVANCE_AMOUNT)
-                + " (paid now, refundable)");
+                + " " + advanceNote);
     }
 
     /** Validates a NIC and also makes sure it is not taken, so the user can re-type at once. */

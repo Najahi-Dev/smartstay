@@ -19,7 +19,7 @@ import java.util.Optional;
 
 /**
  * Everything a guest can do: register / log in, then the guest menu
- * (search rooms, reserve, search/view/cancel reservations, print invoice).
+ * (search rooms, reserve, search/view/modify/cancel reservations, print invoice).
  * The logged in guest is kept in a field while the guest menu is open.
  */
 public class GuestScreen {
@@ -75,7 +75,7 @@ public class GuestScreen {
     private void showGuestMenu() {
         Menu menu = new Menu(io, "Guest Menu - " + currentGuest.getFullName(), List.of(
                 "Search Room", "Make Reservation", "Search Reservation", "View by Check-in Date",
-                "Cancel Reservation", "Print Invoice", "Back (log out)"));
+                "Modify Reservation", "Cancel Reservation", "Print Invoice", "Back (log out)"));
         while (true) {
             int choice = menu.show();
             if (menu.isLast(choice)) {
@@ -87,8 +87,9 @@ public class GuestScreen {
                 case 1 -> io.runAction(() -> forms.bookingForm(currentGuest));
                 case 2 -> io.runAction(this::searchReservation);
                 case 3 -> io.runAction(this::viewByCheckInDate);
-                case 4 -> io.runAction(this::cancelReservation);
-                case 5 -> io.runAction(this::printInvoice);
+                case 4 -> io.runAction(this::modifyReservation);
+                case 5 -> io.runAction(this::cancelReservation);
+                case 6 -> io.runAction(this::printInvoice);
                 default -> io.printError("Unknown option.");
             }
         }
@@ -114,6 +115,13 @@ public class GuestScreen {
     private void viewByCheckInDate() {
         io.printInfo("Your reservations, sorted by check-in date:");
         Display.printBookings(bookingManager.getBookingsForGuest(currentGuest.getNic()));
+    }
+
+    /** Change the room, dates or guest count of one of the guest's own active bookings. */
+    private void modifyReservation() throws HotelException {
+        Booking booking = chooseOwnBooking("Modify which reservation?", true);
+        bookingManager.checkCanModify(booking); // check the 24 hour rule before asking anything
+        forms.changeBookingForm(booking);
     }
 
     private void cancelReservation() throws HotelException {

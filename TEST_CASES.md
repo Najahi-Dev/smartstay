@@ -115,6 +115,19 @@ so the tests work on any day.
 | TC-61 | Cancel | Say No at confirm | BK-0001, `N` | `Reservation kept.` | | |
 | TC-62 | Cancel | Guest has no active booking | Login `N1234567` > Cancel | `You have no reservations for this option.` | | |
 
+## 8b. Modify reservation (Guest)
+
+| Test ID | Feature | Description | Input | Expected result | Actual result | Pass/Fail |
+|---|---|---|---|---|---|---|
+| TC-84 | Modify | Change dates and guests, same room | Login `200012345678` > Modify Reservation > BK-0001 > Deluxe, T+12 to T+15, R201, 2 guests, `Y` | `[OK] Booking BK-0001 changed: BK-0001  R201 Deluxe  T+12 to T+15`. Still BK-0001, still Confirmed. R201 is offered even though it shows Reserved (only this booking holds it) | | |
+| TC-85 | Modify | Move to another room | Modify BK-0001 > Standard, T+12 to T+15, R101, 2 guests, `Y` | Booking now on R101. Search Deluxe for the same dates lists **R201 as Available** again | | |
+| TC-86 | Modify | Estimate after the change | Print Invoice > BK-0001 after TC-85 | Estimate uses the new details: 3 nights Standard, Total 19,800.00, Final payable 9,800.00 | | |
+| TC-87 | Modify | Within 24 h of check-in | Login `987654321V` > Modify Reservation > BK-0002 | `Reservations cannot be changed within 24 hours of check-in (check-in is T at 14:00).` Nothing asked, booking unchanged | | |
+| TC-88 | Modify | New check-in too soon | Modify BK-0001, check-in T+1 | `Check-in must be at least 2 days from today (earliest: T+2).` Asks again | | |
+| TC-89 | Modify | Say No at confirm | Modify BK-0001 ... `N` | `Booking not changed.` Old details kept | | |
+| TC-90 | Modify | Go back part way | Modify BK-0001, type `#` at the date | `Cancelled - nothing was changed.` | | |
+| TC-91 | Modify | Guest with no active booking | Login `N1234567` > Modify Reservation | `You have no reservations for this option.` | | |
+
 ## 9. Invoices
 
 | Test ID | Feature | Description | Input | Expected result | Actual result | Pass/Fail |

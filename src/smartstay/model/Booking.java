@@ -10,6 +10,8 @@ import java.time.temporal.ChronoUnit;
  * A booking links a Guest and a Room (association). The status is not
  * changed with a public setter - only through cancel() and complete() -
  * so a booking cannot jump into a strange state by mistake.
+ * The room, dates and guest count can only change together, through
+ * change(), after the BookingManager has checked the new details.
  */
 public class Booking {
 
@@ -18,10 +20,10 @@ public class Booking {
 
     private final String bookingId;
     private final Guest guest;
-    private final Room room;
-    private final int numberOfGuests;
-    private final LocalDate checkIn;
-    private final LocalDate checkOut;
+    private Room room;
+    private int numberOfGuests;
+    private LocalDate checkIn;
+    private LocalDate checkOut;
     private BookingStatus status;
 
     public Booking(String bookingId, Guest guest, Room room,
@@ -66,6 +68,19 @@ public class Booking {
 
     public void complete() {
         status = BookingStatus.COMPLETED;
+    }
+
+    /**
+     * Changes the room, guest count and dates in one step. The booking ID,
+     * guest, status and advance stay the same. Only BookingManager.modifyBooking
+     * calls this, after every booking rule has been checked.
+     */
+    public void change(Room newRoom, int newNumberOfGuests,
+                       LocalDate newCheckIn, LocalDate newCheckOut) {
+        this.room = newRoom;
+        this.numberOfGuests = newNumberOfGuests;
+        this.checkIn = newCheckIn;
+        this.checkOut = newCheckOut;
     }
 
     public String getBookingId() {

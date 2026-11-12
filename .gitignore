@@ -1,0 +1,9 @@
+# Compiled classes (run.bat / run.sh rebuild these)
+out/
+*.class
+
+# File list made by run.bat during the build
+sources.txt
+
+# Word lock files made while a .docx is open
+~$*

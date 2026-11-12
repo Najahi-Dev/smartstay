@@ -80,11 +80,11 @@ All four have the same members, only the values differ:
 | `+ ADVANCE_AMOUNT : BigDecimal {static, final} = 10000.00` | `+ Booking(bookingId : String, guest : Guest, room : Room, numberOfGuests : int, checkIn : LocalDate, checkOut : LocalDate)` |
 | `- bookingId : String {final}` | `+ getNights() : long` |
 | `- guest : Guest {final}` | `+ overlaps(newCheckIn : LocalDate, newCheckOut : LocalDate) : boolean` |
-| `- room : Room {final}` | `+ isActive() : boolean` |
-| `- numberOfGuests : int {final}` | `+ cancel() : void` |
-| `- checkIn : LocalDate {final}` | `+ complete() : void` |
-| `- checkOut : LocalDate {final}` | getters for every field |
-| `- status : BookingStatus` | |
+| `- room : Room` | `+ isActive() : boolean` |
+| `- numberOfGuests : int` | `+ cancel() : void` |
+| `- checkIn : LocalDate` | `+ complete() : void` |
+| `- checkOut : LocalDate` | `+ change(newRoom : Room, newNumberOfGuests : int, newCheckIn : LocalDate, newCheckOut : LocalDate) : void` |
+| `- status : BookingStatus` | getters for every field |
 
 ### Invoice
 | Fields | Methods |
@@ -112,15 +112,18 @@ All four have the same members, only the values differ:
 | `+ CHECK_IN_TIME : LocalTime {static, final} = 14:00` | `~ addSampleBooking(guest, room, numberOfGuests, checkIn, checkOut) : Booking` |
 | `- NO_CHANGE_HOURS : long {static, final} = 24` | `+ cancelBooking(bookingId : String) : Booking` |
 | `- BY_CHECK_IN : Comparator<Booking> {static, final}` | `+ checkCanCancel(booking : Booking) : void` |
+| | `+ modifyBooking(bookingId : String, newRoom : Room, numberOfGuests : int, checkIn : LocalDate, checkOut : LocalDate) : Booking` |
+| | `+ checkCanModify(booking : Booking) : void` |
 | `- bookings : Map<String, Booking>` (HashMap) | `+ completeBooking(booking : Booking) : void` |
 | `- lastBookingNumber : int` | `+ findBooking(bookingId : String) : Booking` |
 | | `+ searchByGuestName(text : String) : List<Booking>` |
 | | `+ getAllBookingsSorted() : List<Booking>` |
 | | `+ getBookingsForGuest(nic : String) : List<Booking>` |
 | | `+ isRoomFreeForDates(room : Room, checkIn : LocalDate, checkOut : LocalDate) : boolean` |
+| | `+ isRoomFreeForDates(room : Room, checkIn : LocalDate, checkOut : LocalDate, ignore : Booking) : boolean` (overload) |
 | | `+ hasActiveBookingForRoom(roomId : String) : boolean` |
 | | `+ hasActiveBookingForGuest(nic : String) : boolean` |
-| | `- checkOutsideNoChangeWindow(booking : Booking, now : LocalDateTime) : void` |
+| | `- checkOutsideNoChangeWindow(booking : Booking, now : LocalDateTime, action : String) : void` |
 | | `- storeBooking(...) : Booking`, `- nextBookingId() : String` |
 | | `- checkRoomCanBeBooked(room : Room) : void`, `- checkGuestCount(room : Room, numberOfGuests : int) : void` |
 | | `- releaseRoomIfFree(room : Room) : void` |
@@ -137,6 +140,7 @@ All four have the same members, only the values differ:
 | | `+ findRoom(roomId : String) : Room` |
 | | `+ getAllRooms() : List<Room>` |
 | | `+ findAvailableRooms(type : RoomType, checkIn : LocalDate, checkOut : LocalDate) : List<Room>` |
+| | `+ findRoomsForChange(type : RoomType, checkIn : LocalDate, checkOut : LocalDate, booking : Booking) : List<Room>` |
 
 ### GuestManager
 | Fields | Methods |
@@ -251,6 +255,7 @@ Nested «interface»s inside ConsoleIO (both `@FunctionalInterface`):
 - `+ registerGuestForm() : Guest`, `+ findGuestForm() : Guest`, `+ searchRoomsForm() : void`
 - `+ chooseRoomType(title) : RoomType`, `+ chooseBedType(title) : BedType`, `+ <T> chooseFromList(title, values : List<T>) : T`
 - `+ bookingForm(guest : Guest) : void`
+- `+ changeBookingForm(booking : Booking) : void`
 - private: `readCheckIn`, `readCheckOut`, `chooseRoom`, `readGuestCount`, `printBookingSummary`, `checkNewNic`
 
 ### Screens
@@ -262,7 +267,7 @@ Nested «interface»s inside ConsoleIO (both `@FunctionalInterface`):
 | AdminGuestScreen | io, forms, guestManager | `+ show()` (+ private removeGuest, updateGuest, viewGuests) |
 | AdminBookingScreen | io, forms, bookingManager | `+ show()` (+ private createBooking, viewBookings) |
 | AdminInvoiceScreen | io, bookingManager, billingManager | `+ show()` (+ private createInvoice, viewHistory) |
-| GuestScreen | io, forms, guestManager, bookingManager, billingManager, `- currentGuest : Guest` | `+ show()` (+ private login, showGuestMenu, searchReservation, viewByCheckInDate, cancelReservation, printInvoice, chooseOwnBooking, checkSearchText) |
+| GuestScreen | io, forms, guestManager, bookingManager, billingManager, `- currentGuest : Guest` | `+ show()` (+ private login, showGuestMenu, searchReservation, viewByCheckInDate, modifyReservation, cancelReservation, printInvoice, chooseOwnBooking, checkSearchText) |
 
 ---
 

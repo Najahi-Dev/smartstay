@@ -3,6 +3,7 @@ package smartstay.service;
 import smartstay.exception.BusinessRuleException;
 import smartstay.exception.NotFoundException;
 import smartstay.model.BedType;
+import smartstay.model.Booking;
 import smartstay.model.Room;
 import smartstay.model.RoomFactory;
 import smartstay.model.RoomStatus;
@@ -110,6 +111,26 @@ public class RoomManager {
             if (room.getRoomType() == type
                     && room.isAvailable()
                     && bookingManager.isRoomFreeForDates(room, checkIn, checkOut)) {
+                result.add(room);
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Rooms a booking can move to when it is changed. Same as
+     * findAvailableRooms, except the booking's own room is also offered
+     * (it shows as Reserved, but only this booking holds it), and the
+     * booking's own old dates are ignored in the overlap check.
+     */
+    public List<Room> findRoomsForChange(RoomType type, LocalDate checkIn,
+                                         LocalDate checkOut, Booking booking) {
+        List<Room> result = new ArrayList<>();
+        for (Room room : getAllRooms()) {
+            boolean ownRoom = room.getRoomId().equals(booking.getRoom().getRoomId());
+            if (room.getRoomType() == type
+                    && (room.isAvailable() || ownRoom)
+                    && bookingManager.isRoomFreeForDates(room, checkIn, checkOut, booking)) {
                 result.add(room);
             }
         }

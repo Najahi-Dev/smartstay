@@ -99,7 +99,49 @@ public class BookingManager {
             throw new BusinessRuleException("Booking " + booking.getBookingId() + " is "
                     + booking.getStatus() + " and cannot be cancelled.");
         }
-        checkOutsideNoChangeWindow(booking, LocalDateTime.now());
+        checkOutsideNoChangeWindow(booking, LocalDateTime.now(), "cancelled");
+    }
+
+    /**
+     * Changes the room, dates and number of guests of an active booking.
+     * The booking keeps its ID and the advance already paid.
+     * The same rules as a new booking apply, plus the 24 hour rule. The
+     * booking's own room counts as free, because only this booking holds it.
+     */
+    public Booking modifyBooking(String bookingId, Room newRoom, int numberOfGuests,
+                                 LocalDate checkIn, LocalDate checkOut)
+            throws NotFoundException, ValidationException, BusinessRuleException {
+        Booking booking = findBooking(bookingId);
+        checkCanModify(booking);
+        Validator.checkStayDates(checkIn, checkOut, LocalDate.now());
+        Room oldRoom = booking.getRoom();
+        boolean sameRoom = oldRoom.getRoomId().equals(newRoom.getRoomId());
+        if (!sameRoom) {
+            checkRoomCanBeBooked(newRoom);
+        }
+        checkGuestCount(newRoom, numberOfGuests);
+        if (!isRoomFreeForDates(newRoom, checkIn, checkOut, booking)) {
+            throw new BusinessRuleException("Room " + newRoom.getRoomId()
+                    + " already has a booking that overlaps these dates.");
+        }
+        booking.change(newRoom, numberOfGuests, checkIn, checkOut);
+        newRoom.setStatus(RoomStatus.RESERVED);
+        if (!sameRoom) {
+            releaseRoomIfFree(oldRoom); // the old room is free again
+        }
+        return booking;
+    }
+
+    /**
+     * Throws if the booking cannot be changed. Public so the UI can check
+     * BEFORE asking for the new details.
+     */
+    public void checkCanModify(Booking booking) throws BusinessRuleException {
+        if (!booking.isActive()) {
+            throw new BusinessRuleException("Booking " + booking.getBookingId() + " is "
+                    + booking.getStatus() + " and cannot be changed.");
+        }
+        checkOutsideNoChangeWindow(booking, LocalDateTime.now(), "changed");
     }
 
     /** Called by billing when the invoice is made: the stay is finished. */
@@ -112,15 +154,16 @@ public class BookingManager {
      * 24 hour rule.
      * Duration.between(now, checkInMoment) gives the time left until check-in.
      * If it is less than 24 hours (or check-in has already passed, which gives
-     * a negative duration) the booking can no longer be cancelled.
+     * a negative duration) the booking can no longer be cancelled or changed.
+     * action is the word used in the message: "cancelled" or "changed".
      */
-    private void checkOutsideNoChangeWindow(Booking booking, LocalDateTime now)
+    private void checkOutsideNoChangeWindow(Booking booking, LocalDateTime now, String action)
             throws BusinessRuleException {
         LocalDateTime checkInMoment = booking.getCheckIn().atTime(CHECK_IN_TIME);
         long hoursLeft = Duration.between(now, checkInMoment).toHours();
         if (hoursLeft < NO_CHANGE_HOURS) {
             throw new BusinessRuleException(
-                    "Reservations cannot be cancelled within 24 hours of check-in (check-in is "
+                    "Reservations cannot be " + action + " within 24 hours of check-in (check-in is "
                             + booking.getCheckIn() + " at " + CHECK_IN_TIME + ").");
         }
     }
@@ -176,7 +219,19 @@ public class BookingManager {
      * hold the room.
      */
     public boolean isRoomFreeForDates(Room room, LocalDate checkIn, LocalDate checkOut) {
+        return isRoomFreeForDates(room, checkIn, checkOut, null);
+    }
+
+    /**
+     * Same check, but skips one booking. Used when a booking is changed, so
+     * the booking does not clash with its own old dates. ignore may be null.
+     */
+    public boolean isRoomFreeForDates(Room room, LocalDate checkIn, LocalDate checkOut,
+                                      Booking ignore) {
         for (Booking booking : bookings.values()) {
+            if (booking == ignore) {
+                continue;
+            }
             boolean sameRoom = booking.getRoom().getRoomId().equals(room.getRoomId());
             if (sameRoom && booking.isActive() && booking.overlaps(checkIn, checkOut)) {
                 return false;
